@@ -1,0 +1,141 @@
+---
+title: "Complaints_Final"
+author: "Jansen Baier"
+date: "5/6/2022"
+output:
+  flexdashboard::flex_dashboard:
+    orientation: rows
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r}
+#importing data and run the standard stuff
+library(tidyverse)
+library(janitor) 
+library(scales)
+library(lubridate)
+library(usmap)
+library(ggplot2)
+library(formattable)
+
+complaints <- readRDS("complaints.rds")
+```
+
+This website explores consumer complaints against US Banks in the year 2020. Specifically,
+it explores the most common complaints against the most complained banks, using the states to further analyze this data.
+The first chart shows the most complaints per state specifically for the top three most complained companies.
+The next chart explores the top three complaints by each state, with different colors showing each complaint.
+
+Following the two charts are two tables. The first table explores how many complaints each of the top 10 companies by complaints
+received. The next chart explores the top 5 complaints of the top 5 companies by complaints.
+
+The only major caveat to consider in this data is that date from outlying minor US islands was the remove because it had little data and it was altering the framing of other graphs in this project beyond the point of readability.
+
+
+Row 
+-------------------------------------
+
+### Chart 1 - Complaints per State by the Top 3 Most Complainted Companies
+
+```{r}
+
+Complaints_NoOutlyingIslands<- complaints%>%
+    filter(state == "AL"|state == "AK"|state == "AZ"|state == "AR"|state == "CA"|state == "CZ"|state == "CO"|state == "CT"|state == "DE"|state == "DC"|state == "FL"|state == "GA"|state == "GU"|state == "HI"|state == "ID"|state == "IL"|state == "IN"|state == "IA"|state == "KS"|state == "KY"|state == "LA"|state == "ME"|state == "MD"|state == "MA"|state == "MI"|state == "MN"|state == "MS"|state == "MO"|state == "MT"|state == "NE"|state == "NV"|state == "NH"|state == "NJ"|state == "NM"|state == "NY"|state == "NC"|state == "ND"|state == "OH"|state == "OK"|state == "OR"|state == "PA"|state == "PR"|state == "RI"|state == "SC"|state == "SD"|state == "TN"|state == "TX"|state == "UT"|state == "VT"|state == "VI"|state == "VA"|state == "WV"|state == "WI"|state == ""|state == "WY")
+
+Experian_Complaints<- Complaints_NoOutlyingIslands %>% 
+  filter(company == "Experian Information Solutions Inc.")
+
+Transunion_Complaints<- Complaints_NoOutlyingIslands %>% 
+  filter(company == "TRANSUNION INTERMEDIATE HOLDINGS, INC.")
+
+Equifax_Complaints<- Complaints_NoOutlyingIslands %>% 
+  filter(company == "EQUIFAX, INC.")
+
+ggplot() +
+  geom_bar(data = Experian_Complaints, aes(x = state), color = "blue") + 
+  geom_bar(data = Transunion_Complaints, aes(x = state), color = "red") +
+  geom_bar(data = Equifax_Complaints, aes(x = state), color = "green") +
+  scale_y_continuous(name = "Complaints", labels = scales::comma) +
+  scale_x_discrete(name = "States") +
+  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
+  labs(title = "Complaints By State for the Top 3 Most Complained Companies", 
+       subtitle = "Experian (Blue), Transunion (Red), Equifax (Green)",
+       caption = "Consumer Complaint Database")
+
+
+
+```
+
+
+
+### Chart 2 - Top 3 Complaints By Each State
+
+```{r}
+Complaints_NoOutlyingIslands<- complaints%>%
+    filter(state == "AL"|state == "AK"|state == "AZ"|state == "AR"|state == "CA"|state == "CZ"|state == "CO"|state == "CT"|state == "DE"|state == "DC"|state == "FL"|state == "GA"|state == "GU"|state == "HI"|state == "ID"|state == "IL"|state == "IN"|state == "IA"|state == "KS"|state == "KY"|state == "LA"|state == "ME"|state == "MD"|state == "MA"|state == "MI"|state == "MN"|state == "MS"|state == "MO"|state == "MT"|state == "NE"|state == "NV"|state == "NH"|state == "NJ"|state == "NM"|state == "NY"|state == "NC"|state == "ND"|state == "OH"|state == "OK"|state == "OR"|state == "PA"|state == "PR"|state == "RI"|state == "SC"|state == "SD"|state == "TN"|state == "TX"|state == "UT"|state == "VT"|state == "VI"|state == "VA"|state == "WV"|state == "WI"|state == ""|state == "WY")
+
+
+First_complaint<- Complaints_NoOutlyingIslands%>% 
+  filter(product == "Credit reporting, credit repair services, or other personal consumer reports")
+
+
+
+Second_complaint<- Complaints_NoOutlyingIslands%>% 
+  filter(product == "Debt collection")
+
+
+Third_complaint<- Complaints_NoOutlyingIslands%>% 
+  filter(product == "Credit card or prepaid card")
+  
+
+
+    
+    
+ggplot() +
+  geom_bar(data = First_complaint, aes(x = state), color = "blue") + 
+  geom_bar(data = Second_complaint, aes(x = state), color = "red") +
+  geom_bar(data = Third_complaint, aes(x = state), color = "green") +
+  scale_x_discrete(name = "States") +
+  scale_y_discrete(name = "Companies") +
+  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
+  labs(title = "Top Three Complaints By State", 
+       subtitle = "Credit Reporting (Blue), Debt Collection (Red), Credit Card (Green)",
+       caption = "Consumer Complaint Database")
+  
+```
+
+Row {.tabset .tabset-fade}
+-------------------------------------
+
+### Table 1 - Top 10 Companies Recieving Complaints Table
+```{r}
+complaints_copy <- complaints
+
+top_ten_complaint_companies <- complaints_copy %>% 
+  filter(company == "Experian Information Solutions Inc."|company == "TRANSUNION INTERMEDIATE HOLDINGS, INC."|company == "EQUIFAX, INC."|company == "CAPITAL ONE FINANCIAL CORPORATION"|company == "BANK OF AMERICA, NATIONAL ASSOCIATION"|company == "JPMORGAN CHASE & CO."|company == "CITIBANK, N.A."|company == "WELLS FARGO & COMPANY"|company == "SYNCHRONY FINANCIAL"|company == "PNC Bank N.A.")
+
+tentable <-top_ten_complaint_companies %>% 
+  count(company,name = "Complaints")
+
+formattable(tentable)
+
+```
+
+### Table 2 - Top 5 Complaints of Top 5 Companies
+```{r}
+top_five_complaint_companies <- complaints_copy %>% 
+  filter(company == "Experian Information Solutions Inc."|company == "TRANSUNION INTERMEDIATE HOLDINGS, INC."|company == "EQUIFAX, INC."|company == "CAPITAL ONE FINANCIAL CORPORATION"|company == "BANK OF AMERICA, NATIONAL ASSOCIATION")
+
+top_five_complaints_for_each_companies <- top_five_complaint_companies %>%
+  filter(product == "Credit reporting, credit repair services, or other personal consumer reports"|product == "Debt collection"|product == "Credit card or prepaid card"|product == "Mortgage"|product == "Checking or savings account")
+
+fivetable <-tabyl(top_five_complaints_for_each_companies,company,product)
+
+formattable(fivetable)
+
+```
+
