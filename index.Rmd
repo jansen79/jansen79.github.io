@@ -100,7 +100,7 @@ ggplot() +
   geom_bar(data = Second_complaint, aes(x = state), color = "red") +
   geom_bar(data = Third_complaint, aes(x = state), color = "green") +
   scale_x_discrete(name = "States") +
-  scale_y_discrete(name = "Companies") +
+  scale_y_discrete(name = "Complaints") +
   theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
   labs(title = "Top Three Complaints By State", 
        subtitle = "Credit Reporting (Blue), Debt Collection (Red), Credit Card (Green)",
